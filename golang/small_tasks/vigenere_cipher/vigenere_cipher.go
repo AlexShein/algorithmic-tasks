@@ -24,7 +24,7 @@ func (c *VigenèreCipher) initialize() {
 	}
 }
 
-func (c VigenèreCipher) Encode(str string) string {
+func (c *VigenèreCipher) Encode(str string) string {
 	c.initialize()
 	inputRuneArray := []rune(str)
 	result := make([]rune, len(inputRuneArray))
@@ -41,7 +41,7 @@ func (c VigenèreCipher) Encode(str string) string {
 	return string(result)
 }
 
-func (c VigenèreCipher) Decode(str string) string {
+func (c *VigenèreCipher) Decode(str string) string {
 	c.initialize()
 	inputRuneArray := []rune(str)
 	result := make([]rune, len(inputRuneArray))
