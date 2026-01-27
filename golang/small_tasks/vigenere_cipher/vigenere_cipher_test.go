@@ -24,8 +24,8 @@ func TestVigenèreCipher(t *testing.T) {
 		{"Second basic case decode", Decode, "laxxhsj", "waffles", "password", "abcdefghijklmnopqrstuvwxyz"},
 		{"Input is out of alphabet: encode", Encode, "CODEWARS", "CODEWARS", "password", "abcdefghijklmnopqrstuvwxyz"},
 		{"Input is out of alphabet: decode", Decode, "CODEWARS", "CODEWARS", "password", "abcdefghijklmnopqrstuvwxyz"},
-		{"katakata: encode", Encode, "カタカナ", "タモタワ", "カタカナ", "アイウエオァィゥェォカキクケコサシスセソタチツッテトナニヌネノハヒフヘホマミムメモヤャユュヨョラリルレロワヲンー"},
-		{"katakata: decode", Decode, "タモタワ", "カタカナ", "カタカナ", "アイウエオァィゥェォカキクケコサシスセソタチツッテトナニヌネノハヒフヘホマミムメモヤャユュヨョラリルレロワヲンー"},
+		{"katakana: encode", Encode, "カタカナ", "タモタワ", "カタカナ", "アイウエオァィゥェォカキクケコサシスセソタチツッテトナニヌネノハヒフヘホマミムメモヤャユュヨョラリルレロワヲンー"},
+		{"katakana: decode", Decode, "タモタワ", "カタカナ", "カタカナ", "アイウエオァィゥェォカキクケコサシスセソタチツッテトナニヌネノハヒフヘホマミムメモヤャユュヨョラリルレロワヲンー"},
 	}
 
 	for _, test_case := range tests {
