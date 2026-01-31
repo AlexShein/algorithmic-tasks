@@ -44,13 +44,11 @@ func nextPermutation(runes []rune) bool {
 	for i := len(runes) - 1; i > 0; i-- {
 		if runes[i] > runes[i-1] { // A pivot value is found
 			// Take smallest item to the right from the pivot one
-			itemIndexToSwapPivotWith := i
-			for j := i + 1; j < len(runes); j++ { // Finding a smallest item to the right from pivot
-				if runes[j] <= runes[itemIndexToSwapPivotWith] && runes[j] > runes[i-1] {
-					itemIndexToSwapPivotWith = j
-				}
+			j := len(runes) - 1
+			for runes[j] <= runes[i-1] { // Finding a smallest item to the right from pivot
+				j--
 			}
-			runes[i-1], runes[itemIndexToSwapPivotWith] = runes[itemIndexToSwapPivotWith], runes[i-1]
+			runes[i-1], runes[j] = runes[j], runes[i-1]
 			Reverse(runes[i:])
 
 			return true
@@ -62,12 +60,11 @@ func nextPermutation(runes []rune) bool {
 // InsertionSort sorts items inplace. O(n^2) worst case, O(n) best case.
 // Implemented instead of using sorting package purely for fun.
 func InsertionSort(runes []rune) {
-	for i := 0; i < len(runes); {
+	for i := 0; i < len(runes); i++ {
 		for j := i; j > 0 && runes[j-1] > runes[j]; {
 			runes[j], runes[j-1] = runes[j-1], runes[j]
 			j--
 		}
-		i++
 	}
 }
 
