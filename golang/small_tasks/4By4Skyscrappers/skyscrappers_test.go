@@ -26,6 +26,35 @@ var solvePuzzleTestCases = []TestCase{
 			{4, 2, 3, 1},
 			{1, 3, 2, 4}},
 	},
+	{
+		name: "Second puzzle with less clues",
+		input: []int{
+			0, 3, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 2,
+			0, 2, 0, 0,
+		},
+		output: [][]int{
+			{4, 2, 3, 1},
+			{1, 3, 2, 4},
+			{2, 1, 4, 3},
+			{3, 4, 1, 2}},
+	},
+	{
+		name: "All clues are provided",
+		input: []int{
+			2, 1, 3, 2,
+			3, 1, 2, 3,
+			3, 2, 2, 1,
+			1, 2, 4, 2,
+		},
+		output: [][]int{
+			{3, 4, 2, 1},
+			{1, 2, 3, 4},
+			{2, 1, 4, 3},
+			{4, 3, 1, 2},
+		},
+	},
 }
 
 func TestSolvePuzzle(t *testing.T) {
@@ -218,12 +247,16 @@ func TestGetPossibleValuesForPosition(t *testing.T) {
 		0, 0, 0, 0,
 		0, 0, 0, 0})
 	row, col := 1, 1
-	_, values := solver.getPossibleValuesForPosition(row, col)
-	expectedValues := []int{1, 2, 3}
-	if !reflect.DeepEqual(values, expectedValues) {
-		solver.printSolution(true)
-		t.Errorf("Test for the getPossibleValuesForPosition failed:\n Expected row %v,  got %v\n",
-			expectedValues, values)
+	skipBitmask := 0
+	for expectedValue := 1; expectedValue < 4; expectedValue++ {
+		fmt.Printf("=== skip bitmask %b\n", skipBitmask)
+		value := solver.getPossibleValuesForPosition(row, col, skipBitmask)
+		if value != expectedValue {
+			solver.printSolution(true)
+			t.Errorf("Test for the getPossibleValuesForPosition failed:\n Expected value %v, got %v\n",
+				expectedValue, value)
+		}
+		skipBitmask |= (1 << value)
 	}
 
 	// More complex case
@@ -243,13 +276,39 @@ func TestGetPossibleValuesForPosition(t *testing.T) {
 	})
 
 	row, col = 0, 1
-	valuesExist, values := solver.getPossibleValuesForPosition(row, col)
-	expectedValues = []int{}
-	if valuesExist || !reflect.DeepEqual(values, expectedValues) {
+	value := solver.getPossibleValuesForPosition(row, col, 0)
+	expectedValue := -1
+
+	if value != expectedValue {
+		solver.printSolution(true)
+		t.Errorf("Second Test for the getPossibleValuesForPosition failed:\n Expected value %v, got %v\n",
+			expectedValue, value)
+	}
+
+	// More complex case
+	solver = &(PuzzleSolver{
+		solution: [][]int{
+			{0, 2, 0, 0},
+			{1, 3, 0, 4},
+			{2, 1, 0, 0},
+			{0, 4, 0, 0},
+		},
+		FILLED_CELLS_BITMASK: 0b10001110110010,
+		ROW_BITMASKS:         [4]int{4, 26, 6, 16},
+		COL_BITMASKS:         [4]int{6, 30, 0, 16},
+
+		ROW_CLUES: [4][2]int{{0, 0}, {0, 1}, {2, 0}, {0, 0}},
+		COL_CLUES: [4][2]int{{0, 2}, {3, 1}, {0, 0}, {0, 0}},
+	})
+
+	row, col = 0, 0
+	value = solver.getPossibleValuesForPosition(row, col, (1 << 3))
+	expectedValue = 4
+	if value != expectedValue {
 		solver.printSolution(true)
 		fmt.Printf("Row0 bitmask %b\n", solver.ROW_BITMASKS[0])
-		t.Errorf("Second Test for the getPossibleValuesForPosition failed:\n Expected row %v,  got %v\n",
-			expectedValues, values)
+		t.Errorf("Second Test for the getPossibleValuesForPosition failed:\n Expected value %v, got %v\n",
+			expectedValue, value)
 	}
 
 }
@@ -291,6 +350,30 @@ func TestDoValuesFulfillClue(t *testing.T) {
 			[]int{0, 4, 0, 2},
 			2,
 			BACKWARD,
+			true,
+		},
+		{
+			[]int{1, 3, 4, 2},
+			2,
+			FORWARD,
+			false,
+		},
+		{
+			[]int{4, 1, 2, 0},
+			2,
+			BACKWARD,
+			true,
+		},
+		{
+			[]int{4, 2, 1, 0},
+			2,
+			BACKWARD,
+			true,
+		},
+		{
+			[]int{4, 2, 1, 0},
+			1,
+			FORWARD,
 			true,
 		},
 	}
