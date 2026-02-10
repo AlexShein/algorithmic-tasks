@@ -1,6 +1,7 @@
 package skyscrappers
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -139,14 +140,14 @@ func TestSetUnsetSolutionValue(t *testing.T) {
 	expectedColBitmaskValue := expectedRowBitmaskValue
 	solver.setSolutionValue(firstRow, firstCol, firstValue)
 	if solver.COL_BITMASKS[firstCol] != expectedColBitmaskValue || solver.ROW_BITMASKS[firstRow] != expectedRowBitmaskValue {
-		solver.printSolution()
+		solver.printSolution(true)
 		t.Errorf("Test for the first call of setSolutionValue failed:\n"+
 			"Expected bitmask %b, Got firstRow bitmask %b, firstCol bitmask %b\n",
 			expectedRowBitmaskValue, solver.ROW_BITMASKS[firstRow], solver.COL_BITMASKS[firstCol])
 	}
 	expectedFilledCellsBitmaskValue := uint64(1 << (firstRow*PUZZLE_SIZE + firstCol))
 	if solver.FILLED_CELLS_BITMASK != expectedFilledCellsBitmaskValue {
-		solver.printSolution()
+		solver.printSolution(true)
 		t.Errorf("Test for the first call of setSolutionValue failed:\n"+
 			"Expected filled cell bitmask %b, Got row bitmask %b\n",
 			expectedFilledCellsBitmaskValue, solver.FILLED_CELLS_BITMASK)
@@ -159,7 +160,7 @@ func TestSetUnsetSolutionValue(t *testing.T) {
 	expectedColBitmaskValue = expectedColBitmaskValue | 1<<value
 	solver.setSolutionValue(secondRow, secondCol, value)
 	if solver.COL_BITMASKS[secondCol] != expectedColBitmaskValue || solver.ROW_BITMASKS[secondRow] != expectedRowBitmaskValue {
-		solver.printSolution()
+		solver.printSolution(true)
 		t.Errorf("Test for the second call of setSolutionValue failed:\n"+
 			"Expected bitmask %b, Got secondRow bitmask %b, secondCol bitmask %b\n",
 			expectedRowBitmaskValue, solver.ROW_BITMASKS[secondRow], solver.COL_BITMASKS[secondCol])
@@ -168,7 +169,7 @@ func TestSetUnsetSolutionValue(t *testing.T) {
 
 	expectedFilledCellsBitmaskValue = expectedFilledCellsBitmaskValue | uint64(1<<(secondRow*PUZZLE_SIZE+secondCol))
 	if solver.FILLED_CELLS_BITMASK != expectedFilledCellsBitmaskValue {
-		solver.printSolution()
+		solver.printSolution(true)
 		t.Errorf("Test for the first call of setSolutionValue failed:\n"+
 			"Expected filled cell bitmask %b, Got secondRow bitmask %b\n",
 			expectedFilledCellsBitmaskValue, solver.FILLED_CELLS_BITMASK)
@@ -181,14 +182,14 @@ func TestSetUnsetSolutionValue(t *testing.T) {
 	expectedColBitmaskValue = expectedRowBitmaskValue
 	expectedFilledCellsBitmaskValue = uint64(1 << (firstRow*PUZZLE_SIZE + firstCol))
 	if solver.COL_BITMASKS[firstCol] != expectedColBitmaskValue || solver.ROW_BITMASKS[firstRow] != expectedRowBitmaskValue {
-		solver.printSolution()
+		solver.printSolution(true)
 		t.Errorf("Test for the call of unSetSolutionValue failed:\n"+
 			"Expected bitmask %b, Got firstRow bitmask %b, firstCol bitmask %b\n",
 			expectedRowBitmaskValue, solver.ROW_BITMASKS[firstRow], solver.COL_BITMASKS[firstCol])
 	}
 	expectedFilledCellsBitmaskValue = uint64(1 << (firstRow*PUZZLE_SIZE + firstCol))
 	if solver.FILLED_CELLS_BITMASK != expectedFilledCellsBitmaskValue {
-		solver.printSolution()
+		solver.printSolution(true)
 		t.Errorf("Test for the call of unSetSolutionValue failed:\n"+
 			"Expected filled cell bitmask %b, Got firstRow bitmask %b\n",
 			expectedFilledCellsBitmaskValue, solver.FILLED_CELLS_BITMASK)
@@ -217,14 +218,40 @@ func TestGetPossibleValuesForPosition(t *testing.T) {
 		0, 0, 0, 0,
 		0, 0, 0, 0})
 	row, col := 1, 1
-	values := solver.getPossibleValuesForPosition(row, col)
-	solver.printSolution()
+	_, values := solver.getPossibleValuesForPosition(row, col)
 	expectedValues := []int{1, 2, 3}
-	solver.printSolution()
 	if !reflect.DeepEqual(values, expectedValues) {
+		solver.printSolution(true)
 		t.Errorf("Test for the getPossibleValuesForPosition failed:\n Expected row %v,  got %v\n",
 			expectedValues, values)
 	}
+
+	// More complex case
+	solver = &(PuzzleSolver{
+		solution: [][]int{
+			{1, 0, 4, 3},
+			{3, 4, 1, 2},
+			{4, 2, 3, 1},
+			{0, 0, 2, 4},
+		},
+		FILLED_CELLS_BITMASK: 0b1100111111111101,
+		ROW_BITMASKS:         [4]int{26, 30, 30, 20},
+		COL_BITMASKS:         [4]int{26, 20, 30, 30},
+
+		ROW_CLUES: [4][2]int{{0, 0}, {0, 2}, {1, 0}, {0, 0}},
+		COL_CLUES: [4][2]int{{0, 0}, {0, 0}, {1, 3}, {2, 0}},
+	})
+
+	row, col = 0, 1
+	valuesExist, values := solver.getPossibleValuesForPosition(row, col)
+	expectedValues = []int{}
+	if valuesExist || !reflect.DeepEqual(values, expectedValues) {
+		solver.printSolution(true)
+		fmt.Printf("Row0 bitmask %b\n", solver.ROW_BITMASKS[0])
+		t.Errorf("Second Test for the getPossibleValuesForPosition failed:\n Expected row %v,  got %v\n",
+			expectedValues, values)
+	}
+
 }
 
 type TestCaseDoValuesFulfillClue struct {
