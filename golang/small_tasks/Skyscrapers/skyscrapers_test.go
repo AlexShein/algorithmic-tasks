@@ -1,4 +1,4 @@
-package skyscrappers
+package skyscrapers
 
 import (
 	"fmt"
