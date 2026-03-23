@@ -79,7 +79,7 @@ func SolvePuzzle(clues []int) [][]int {
 	return solution
 }
 
-// Factory function for the solver. Initializes internally used slices, arrays
+// Factory function for the solver. Initializes internally used arrays
 // and takes care of trivial cell values with clues 1 and PUZZLE_SIZE
 func NewPuzzleSolver(clues []int) *PuzzleSolver {
 	puzzle := PuzzleSolver{
@@ -146,34 +146,23 @@ func (puzzle PuzzleSolver) printSolution(detailed bool) {
 // Recursively solves the puzzle, one cell at a time, starting with the most constrained cell.
 func (puzzle *PuzzleSolver) solutionStep() bool {
 	puzzle.stepCounter++
-
-	// fmt.Printf("===[step %d] Entering the recursion===\n", puzzle.stepCounter)
-
 	skipBitmask := 0
 	row, col := puzzle.getNextMostConstrainedCell()
 	if row != -1 {
-		// fmt.Printf("[step %d] picked cell (%d,%d)\n", puzzle.stepCounter, row, col)
 		for nextVal := puzzle.getPossibleValuesForPosition(row, col, skipBitmask); nextVal != -1; {
 			skipBitmask |= (1 << nextVal) // Marking the current value to be skipped in the next iteration
 			oldCellPossibleValuesBimask := puzzle.possibleCellValuesBitmask[row*PUZZLE_SIZE+col]
-			// fmt.Printf("[step %d] trying (%d,%d) = %d\n", puzzle.stepCounter, row, col, nextVal)
-			// puzzle.printSolution(true)
 			if puzzle.setSolutionValue(row, col, nextVal) {
 				if puzzle.solutionStep() { // Check if current value leads to a solution
 					return true
 				}
 			}
-			//  else {
-			// 	fmt.Printf("[step %d] rejected (%d,%d) = %d (leaves a cell with no options)\n", puzzle.stepCounter, row, col, nextVal)
-			// }
 			// Resets the cell in case the value did not lead to the solution
 			puzzle.unSetSolutionValue(row, col, nextVal, oldCellPossibleValuesBimask)
 			nextVal = puzzle.getPossibleValuesForPosition(row, col, skipBitmask)
 		}
-		// fmt.Printf("[step %d] backtracking from (%d,%d) — no valid value found\n", puzzle.stepCounter, row, col)
 		return false
 	}
-	// fmt.Printf("[step %d] all cells filled — solution found!\n", puzzle.stepCounter)
 	return true
 }
 
@@ -184,15 +173,10 @@ func (puzzle *PuzzleSolver) getPossibleValuesForPosition(row, col, skipBitmask i
 	for value := 1; value <= PUZZLE_SIZE; value++ {
 		valueBitmask := (1 << value)
 		// Check if the value is allowed for the cell
-		// if valueBitmask&puzzle.possibleCellValuesBitmask[cellIndex]&(^skipBitmask) != 0 && puzzle.doesCellValueMatchClues(row, col, value) {
 		if valueBitmask&puzzle.possibleCellValuesBitmask[cellIndex]&(^skipBitmask) != 0 {
-			// fmt.Printf("[step %d] Verifying if value %d matches clues\n", puzzle.stepCounter, value)
-			// puzzle.printSolution(true)
-			// # TODO (Alexander Shein) Move this check to set solution value?
 			if puzzle.doesCellValueMatchClues(row, col, value) {
 				return value
 			}
-			// fmt.Printf("[step %d] Value %d does not match clues\n", puzzle.stepCounter, value)
 		}
 	}
 	return -1
@@ -204,7 +188,6 @@ func (puzzle *PuzzleSolver) setSolutionValue(row, col, value int) bool {
 	isSuccess := true
 
 	valueBitmask := ^(1 << value)
-	// fmt.Printf("Entering setSolutionValue with [%d, %d] value %d\n", row, col, value)
 	currentCellIndex := row*PUZZLE_SIZE + col
 	for i := 0; i < PUZZLE_SIZE; i++ {
 		// Cover the column
@@ -233,7 +216,6 @@ func (puzzle *PuzzleSolver) setSolutionValue(row, col, value int) bool {
 	}
 
 	puzzle.solution[currentCellIndex] = value
-	// fmt.Printf("Updating cell [%d, %d] bitmask to %d\n", row, col, 1<<value)
 	puzzle.possibleCellValuesBitmask[currentCellIndex] = 1 << value
 
 	return isSuccess
@@ -262,7 +244,6 @@ func (puzzle *PuzzleSolver) unSetSolutionValue(row, col, oldValue, oldCellPossib
 	}
 
 	puzzle.solution[currentCellIndex] = 0
-	// fmt.Printf("Updating cell [%d, %d] bitmask to %d\n", row, col, oldCellPossibleValuesBimask)
 	puzzle.possibleCellValuesBitmask[currentCellIndex] = oldCellPossibleValuesBimask
 
 }
@@ -380,6 +361,10 @@ func (puzzle *PuzzleSolver) doValuesFulfillClue(row, col, clue int, axis axis, d
 			currentValue = puzzle.solution[index*PUZZLE_SIZE+col]
 		}
 
+		if i+1+(PUZZLE_SIZE-currentValue) < clue { // Number of cells we went through + how much more we *might* see.
+			return false // Total number of observable buildings is less than <clue>
+		}
+
 		if currentValue == 0 {
 			zerosCount += 1
 			break
@@ -388,9 +373,6 @@ func (puzzle *PuzzleSolver) doValuesFulfillClue(row, col, clue int, axis axis, d
 			maxHeight = currentValue
 		}
 		if currentValue == PUZZLE_SIZE { // No need to iterate further as we won't see other skyscrapers after the tallest one.
-			if i+1 < clue {
-				return false // There was less than <clue> cells before we've hit the tallest building
-			}
 			break
 		}
 	}
@@ -445,7 +427,6 @@ func (puzzle *PuzzleSolver) doesCellValueMatchClues(row, col, value int) bool {
 	if puzzle.rowClues[row][0] != 0 || puzzle.rowClues[row][1] != 0 {
 		if !puzzle.doValuesFulfillClue(row, col, puzzle.rowClues[row][0], ROW, FORWARD) ||
 			!puzzle.doValuesFulfillClue(row, col, puzzle.rowClues[row][1], ROW, BACKWARD) {
-			// fmt.Printf("[value %d] Returning false because value does not matche row clues!\n", value)
 			puzzle.solution[cellIndex] = oldValue
 			return false
 		}
@@ -453,7 +434,6 @@ func (puzzle *PuzzleSolver) doesCellValueMatchClues(row, col, value int) bool {
 	if puzzle.colClues[col][0] != 0 || puzzle.colClues[col][1] != 0 {
 		if !puzzle.doValuesFulfillClue(row, col, puzzle.colClues[col][0], COLUMN, FORWARD) ||
 			!puzzle.doValuesFulfillClue(row, col, puzzle.colClues[col][1], COLUMN, BACKWARD) {
-			// fmt.Printf("[value %d] Returning false because value does not matche col clues!\n", value)
 
 			puzzle.solution[cellIndex] = oldValue
 			return false
