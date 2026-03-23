@@ -687,7 +687,7 @@ func TestDoValuesFulfillClue(t *testing.T) {
 		if res != testCase.expected {
 			t.Errorf("Test %s\nInput: %v, Expected %v, Got %v",
 				testCase.name,
-				[]int{testCase.row, testCase.col, testCase.clue, testCase.axis, testCase.dir},
+				[]int{testCase.row, testCase.col, testCase.clue, int(testCase.axis), int(testCase.dir)},
 				testCase.expected,
 				res)
 			return

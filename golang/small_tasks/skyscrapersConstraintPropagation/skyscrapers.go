@@ -4,14 +4,14 @@ import "fmt"
 
 const PUZZLE_SIZE = 4 // N
 
-type axis = int
+type axis int
 
 const (
 	ROW axis = iota
 	COLUMN
 )
 
-type direction = int
+type direction int
 
 const (
 	FORWARD direction = iota
@@ -28,6 +28,9 @@ type PuzzleSolver struct {
 
 	// The solution is transformed into 2d array when returned
 	solution [PUZZLE_SIZE * PUZZLE_SIZE]int
+
+	// Used to speed up constraint score calculation
+	cluesNumberPerCell [PUZZLE_SIZE * PUZZLE_SIZE]int
 
 	stepCounter int // Used to track performance
 }
@@ -103,7 +106,7 @@ func NewPuzzleSolver(clues []int) *PuzzleSolver {
 
 }
 
-func (puzzle PuzzleSolver) printSolution(detailed bool) {
+func (puzzle *PuzzleSolver) printSolution(detailed bool) {
 	fmt.Println("= Solution =")
 	fmt.Print("{\n")
 	for i := 0; i < PUZZLE_SIZE; i++ {
@@ -296,16 +299,29 @@ func (puzzle *PuzzleSolver) initializeClues(clues []int) {
 		puzzle.handleTrivialValues(ROW, i, puzzle.rowClues[i])
 		puzzle.handleTrivialValues(COLUMN, i, puzzle.colClues[i])
 	}
+	for i := 0; i < PUZZLE_SIZE; i++ {
+		for j := 0; j < PUZZLE_SIZE; j++ {
+			index := i*PUZZLE_SIZE + j
+			if puzzle.rowClues[i][0] != 0 {
+				puzzle.cluesNumberPerCell[index] += 1
+			}
+			if puzzle.rowClues[i][1] != 0 {
+				puzzle.cluesNumberPerCell[index] += 1
+			}
+			if puzzle.rowClues[j][0] != 0 {
+				puzzle.cluesNumberPerCell[index] += 1
+			}
+			if puzzle.rowClues[j][1] != 0 {
+				puzzle.cluesNumberPerCell[index] += 1
+			}
+		}
+	}
 }
 
 // Constraint score is used to define the next cell algorithm will use
 // The more clues and already set cells in the cell's row or col, the higher the score will be
-func (puzzle *PuzzleSolver) getCellConstraintScore(row, col int) int {
-	score := puzzle.rowClues[row][0] + puzzle.rowClues[row][1]
-	score += puzzle.colClues[col][0] + puzzle.colClues[col][1]
-
-	cellIndex := row*PUZZLE_SIZE + col
-
+func (puzzle *PuzzleSolver) getCellConstraintScore(cellIndex int) int {
+	score := puzzle.cluesNumberPerCell[cellIndex]
 	for i := 1; i <= PUZZLE_SIZE; i++ {
 		// Increasing the score by 1 for every number unavailable for the cell
 		if (^puzzle.possibleCellValuesBitmask[cellIndex])&(1<<i) != 0 {
@@ -325,7 +341,7 @@ func (puzzle *PuzzleSolver) getNextMostConstrainedCell() (int, int) {
 		for cellCol := 0; cellCol < PUZZLE_SIZE; cellCol++ {
 			index := cellRow*PUZZLE_SIZE + cellCol
 			if puzzle.solution[index] == 0 {
-				newConstraintScore := puzzle.getCellConstraintScore(cellRow, cellCol)
+				newConstraintScore := puzzle.getCellConstraintScore(index)
 				if newConstraintScore > constraintScore {
 					constraintScore = newConstraintScore
 					row, col = cellRow, cellCol
@@ -364,42 +380,6 @@ func (puzzle *PuzzleSolver) doValuesFulfillClue(row, col, clue int, axis axis, d
 		if i+1+(PUZZLE_SIZE-currentValue) < clue { // Number of cells we went through + how much more we *might* see.
 			return false // Total number of observable buildings is less than <clue>
 		}
-
-		if currentValue == 0 {
-			zerosCount += 1
-			break
-		} else if currentValue > maxHeight {
-			visibleCount += 1
-			maxHeight = currentValue
-		}
-		if currentValue == PUZZLE_SIZE { // No need to iterate further as we won't see other skyscrapers after the tallest one.
-			break
-		}
-	}
-
-	if zerosCount == 0 { // Only return false if values clearly violate the clue
-		return visibleCount == clue
-	}
-	return true
-}
-
-// Checks if values in row / column fulfill clues. Returns true if at least one number is unset.
-func doValuesFulfillClue(values []int, clue int, dir direction) bool {
-	if clue == 0 {
-		return true // No clue is given for this column / row
-	}
-
-	visibleCount, zerosCount, maxHeight, index := 0, 0, 0, 0
-
-	for i := 0; i < PUZZLE_SIZE; i++ {
-		switch dir {
-		case FORWARD:
-			index = i
-		case BACKWARD:
-			index = PUZZLE_SIZE - 1 - i
-		}
-
-		currentValue := values[index]
 
 		if currentValue == 0 {
 			zerosCount += 1
