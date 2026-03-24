@@ -1,6 +1,9 @@
 package skyscrapersV2
 
-import "fmt"
+import (
+	"fmt"
+	"math/bits"
+)
 
 const PUZZLE_SIZE = 4 // N
 
@@ -154,14 +157,15 @@ func (puzzle *PuzzleSolver) solutionStep() bool {
 	if row != -1 {
 		for nextVal := puzzle.getPossibleValuesForPosition(row, col, skipBitmask); nextVal != -1; {
 			skipBitmask |= (1 << nextVal) // Marking the current value to be skipped in the next iteration
-			oldCellPossibleValuesBimask := puzzle.possibleCellValuesBitmask[row*PUZZLE_SIZE+col]
+			currentPossibleValueBitmasks := puzzle.possibleCellValuesBitmask
 			if puzzle.setSolutionValue(row, col, nextVal) {
 				if puzzle.solutionStep() { // Check if current value leads to a solution
 					return true
 				}
 			}
 			// Resets the cell in case the value did not lead to the solution
-			puzzle.unSetSolutionValue(row, col, nextVal, oldCellPossibleValuesBimask)
+			puzzle.solution[row*PUZZLE_SIZE+col] = 0
+			puzzle.possibleCellValuesBitmask = currentPossibleValueBitmasks
 			nextVal = puzzle.getPossibleValuesForPosition(row, col, skipBitmask)
 		}
 		return false
@@ -222,33 +226,6 @@ func (puzzle *PuzzleSolver) setSolutionValue(row, col, value int) bool {
 	puzzle.possibleCellValuesBitmask[currentCellIndex] = 1 << value
 
 	return isSuccess
-}
-
-func (puzzle *PuzzleSolver) unSetSolutionValue(row, col, oldValue, oldCellPossibleValuesBimask int) {
-	currentCellIndex := row*PUZZLE_SIZE + col
-	valueBitmask := 1 << oldValue
-	for i := 0; i < PUZZLE_SIZE; i++ {
-		// Cover the column
-		colIndex := i*PUZZLE_SIZE + col
-		if colIndex != currentCellIndex {
-			// Set 1 to corresponding bit of the possible cell values bitmask
-			if puzzle.solution[colIndex] == 0 {
-				puzzle.possibleCellValuesBitmask[colIndex] |= valueBitmask
-			}
-		}
-		// Cover the row
-		rowIndex := row*PUZZLE_SIZE + i
-		if rowIndex != currentCellIndex {
-			// Set 1 to corresponding bit of the possible cell values bitmask
-			if puzzle.solution[rowIndex] == 0 {
-				puzzle.possibleCellValuesBitmask[rowIndex] |= valueBitmask
-			}
-		}
-	}
-
-	puzzle.solution[currentCellIndex] = 0
-	puzzle.possibleCellValuesBitmask[currentCellIndex] = oldCellPossibleValuesBimask
-
 }
 
 // Sets whole row or column to [1..PUZZLE_SIZE] in ascending or descending order
@@ -322,13 +299,9 @@ func (puzzle *PuzzleSolver) initializeClues(clues []int) {
 // The more clues and already set cells in the cell's row or col, the higher the score will be
 func (puzzle *PuzzleSolver) getCellConstraintScore(cellIndex int) int {
 	score := puzzle.cluesNumberPerCell[cellIndex]
-	for i := 1; i <= PUZZLE_SIZE; i++ {
-		// Increasing the score by 1 for every number unavailable for the cell
-		if (^puzzle.possibleCellValuesBitmask[cellIndex])&(1<<i) != 0 {
-			score += 1
-		}
 
-	}
+	// Increasing the score by 1 for every number unavailable for the cell
+	score += bits.OnesCount(^uint(puzzle.possibleCellValuesBitmask[cellIndex]))
 
 	return score
 }
