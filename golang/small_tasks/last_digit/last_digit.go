@@ -4,17 +4,17 @@ import (
 	"strconv"
 )
 
-var possiblePowerLastDigits = map[int][]int{
-	1: {1},
-	2: {2, 4, 8, 6},
-	3: {3, 9, 7, 1},
-	4: {4, 6},
-	5: {5},
-	6: {6},
-	7: {7, 9, 3, 1},
-	8: {8, 4, 2, 6},
-	9: {9, 1},
-	0: {0},
+var possiblePowerLastDigits = [][]int{
+	{0},
+	{1},
+	{2, 4, 8, 6},
+	{3, 9, 7, 1},
+	{4, 6},
+	{5},
+	{6},
+	{7, 9, 3, 1},
+	{8, 4, 2, 6},
+	{9, 1},
 }
 
 func LastDigit(n1, n2 string) int {
