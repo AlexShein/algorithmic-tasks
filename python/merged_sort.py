@@ -75,6 +75,7 @@ TEST_CASES = [
 if __name__ == "__main__":
     for t_case in TEST_CASES:
         res, iter_count = merged_sort(t_case.input)
+        assert res == t_case.output
         print(
             f"###\nSuccess:{res == t_case.output}\nResult  :{res}\nExpected:{t_case.output}\nIter count:{iter_count}\nInput len:{len(t_case.input)}",
         )
