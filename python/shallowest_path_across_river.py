@@ -77,17 +77,7 @@ def shallowest_path(river: list[list[int]]) -> list[tuple[int, int]]:
         heapq.heappush(priority_queue, (river[i][0], (i, 0)))
 
     while priority_queue:
-        # print("{depth_map=}")
-        # pprint(depth_map)
-        # print("{previous_points_map=}")
-        # pprint(previous_points_map)
         depth, point = heapq.heappop(priority_queue)
-        # TODO (Alexander Shein) Calc curr depth
-        # if point == (2, 5):
-        #     import pdb
-
-        #     pdb.set_trace()  # DEBUG BKREAKPOINT
-
         print(f"Picked point, processing {depth=} {point=}")
 
         if best_solution and depth > best_solution.depth:
@@ -95,8 +85,6 @@ def shallowest_path(river: list[list[int]]) -> list[tuple[int, int]]:
 
         if point[1] == dim[1] - 1:  # We reached the right coast.
             solution = Solution(point, previous_points_map, depth)
-            # print(f"Found solution, length {solution.length=}")
-            # pprint(solution.path)
             if not best_solution or (
                 depth < best_solution.depth
                 or (
@@ -108,9 +96,7 @@ def shallowest_path(river: list[list[int]]) -> list[tuple[int, int]]:
                 continue
 
         for adj_point in adjacent_points(point[0], point[1], dim):
-            # print(f"{dim=} {adj_point=}")
             max_depth = max(depth, river[adj_point[0]][adj_point[1]])
-            # TODO (Alexander Shein) Use only curr depth
             if (
                 max_depth < depth_map[adj_point]
                 or (  # The depth is lower
@@ -131,9 +117,8 @@ def shallowest_path(river: list[list[int]]) -> list[tuple[int, int]]:
                     ),
                 )
                 previous_points_map[adj_point] = point
-                depth_map[adj_point] = depth
+                depth_map[adj_point] = max_depth
 
-    # print(f"Returning {best_solution.length=}")
     return best_solution.path
 
 
