@@ -1,6 +1,7 @@
 import pytest
 from dataclasses import dataclass
-from functools import reduce
+from collections import deque
+from itertools import chain
 
 
 class Solution:
@@ -62,36 +63,35 @@ def shallowest_path(river: list[list[int]]) -> list[tuple[int, int]]:
     and picking the shortest one as the best one.
     """
     dim = (len(river), len(river[0]))
-    unqiue_cell_values = reduce(
-        lambda acc, seq: acc.union(seq), (i for i in river), set()
-    )
+    unqiue_cell_values = set(chain(*river))
 
     best_solution: Solution = None
     for max_depth in sorted(unqiue_cell_values):
+        queue = deque()
         for start_i in range(dim[0]):
             # For each of starting positions we do the breadth-first search
             # BFS guarantees shorter ones are found first
             if river[start_i][0] > max_depth:
                 continue
 
-            queue = [(start_i, 0)]
-            explored = {(start_i, 0)}
-            prev = {}  # Cell parents map
-            while queue:
-                point, queue = queue[0], queue[1:]
-                if point[1] == dim[1] - 1:  # We reached the right coast.
-                    solution = Solution(point, prev, max_depth)
-                    if not best_solution or solution < best_solution:
-                        best_solution = solution
-                        continue
-                for adj_point in adjacent_points(point[0], point[1], dim):
-                    if (
-                        adj_point not in explored
-                        and river[adj_point[0]][adj_point[1]] <= max_depth
-                    ):
-                        explored.add(adj_point)
-                        prev[adj_point] = point
-                        queue.append(adj_point)
+            queue.append((start_i, 0))
+        explored = {(start_i, 0)}
+        prev = {}  # Cell parents map
+        while queue:
+            point = queue.popleft()
+            if point[1] == dim[1] - 1:  # We reached the right coast.
+                solution = Solution(point, prev, max_depth)
+                if not best_solution or solution < best_solution:
+                    best_solution = solution
+                    continue
+            for adj_point in adjacent_points(point[0], point[1], dim):
+                if (
+                    adj_point not in explored
+                    and river[adj_point[0]][adj_point[1]] <= max_depth
+                ):
+                    explored.add(adj_point)
+                    prev[adj_point] = point
+                    queue.append(adj_point)
         # We found a solution with the current max depth, no need to increase it further
         if best_solution:
             break
