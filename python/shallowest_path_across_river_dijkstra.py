@@ -1,7 +1,6 @@
 import pytest
 from dataclasses import dataclass
 import heapq
-from pprint import pprint
 
 HUGE_NUMBER = int(10e10)  # arbitrary initial large number
 
@@ -41,7 +40,6 @@ def adjacent_points(i: int, j: int, dim: tuple[int, int]):
             if (n, m) == (0, 0) or (j + m) == 0:
                 continue  # Ignore the current point or the left bank
             if 0 <= i + n < dim[0] and 0 <= j + m < dim[1]:
-                # print("Adj points returning", (i + n, j + m))
                 yield (i + n, j + m)
     return  # Default case when no point could be yielded
 
@@ -53,8 +51,6 @@ def shallowest_path(river: list[list[int]]) -> list[tuple[int, int]]:
     If there are several paths that are equally shallow, the function returns a shortest such path.
     All depths are given as positive integers.
     """
-    print("Solving for: ")
-    pprint(river)
     # The priority queue: a simple list of tuples (distance, node)
     # heapq maintains the min-heap invariant on this list
     priority_queue = []
@@ -78,7 +74,6 @@ def shallowest_path(river: list[list[int]]) -> list[tuple[int, int]]:
 
     while priority_queue:
         depth, point = heapq.heappop(priority_queue)
-        print(f"Picked point, processing {depth=} {point=}")
 
         if best_solution and depth > best_solution.depth:
             break  # The best remaining point is deeper than the best know solution
@@ -108,7 +103,6 @@ def shallowest_path(river: list[list[int]]) -> list[tuple[int, int]]:
                     < len(point_path(adj_point, previous_points_map))
                 )
             ):
-                print(f"Pushing {max_depth=}, {adj_point=}")
                 heapq.heappush(
                     priority_queue,
                     (
