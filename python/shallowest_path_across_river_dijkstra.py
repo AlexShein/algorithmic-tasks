@@ -50,6 +50,9 @@ def shallowest_path(river: list[list[int]]) -> list[tuple[int, int]]:
     and returns a shallowest path (i.e., the maximum depth is minimal) as a list of coordinate pairs.
     If there are several paths that are equally shallow, the function returns a shortest such path.
     All depths are given as positive integers.
+
+    This solution uses the Dijkstra algorithm to find pathes,
+    but it tends to violate the optimal path substructure, i.e. length if deepest parts occur late.
     """
     # The priority queue: a simple list of tuples (distance, node)
     # heapq maintains the min-heap invariant on this list

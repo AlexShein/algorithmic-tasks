@@ -57,6 +57,9 @@ def shallowest_path(river: list[list[int]]) -> list[tuple[int, int]]:
     and returns a shallowest path (i.e., the maximum depth is minimal) as a list of coordinate pairs.
     If there are several paths that are equally shallow, the function returns a shortest such path.
     All depths are given as positive integers.
+
+    This solution uses the BFS approach by iteratively looking for pathes with depth less than n
+    and picking the shortest one as the best one.
     """
     dim = (len(river), len(river[0]))
     unqiue_cell_values = reduce(
