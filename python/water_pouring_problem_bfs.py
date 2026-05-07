@@ -1,17 +1,7 @@
 import pytest
 from dataclasses import dataclass
 from collections import deque
-
-
-def greatest_common_divisor(a: int, b: int) -> int:
-    """Uses Euclidian algorithm"""
-    if a == 0:
-        return b
-    if b == 0:
-        return a
-    if a > b:
-        return greatest_common_divisor(a % b, b)
-    return greatest_common_divisor(a, b % a)
+from math import gcd
 
 
 def wpp(a: int, b: int, n: int) -> list[tuple[int, int]]:
@@ -22,7 +12,7 @@ def wpp(a: int, b: int, n: int) -> list[tuple[int, int]]:
     Solving using the breadth-first search approach
     """
     path = []
-    if (n > a and n > b) or (n % greatest_common_divisor(a, b) != 0):
+    if (n > a and n > b) or (n % gcd(a, b) != 0):
         return []
 
     visited_cells = {(0, 0)}
@@ -89,25 +79,25 @@ TEST_CASES = [
         expected_step_number=0,
     ),
     WaterPouringPuzzeTestCase(
-        name="3, 5, 4: 7 steps",
+        name="3, 5, 4: 6 steps",
         a=3,
         b=5,
         n=4,
-        expected_step_number=7,  # [(0,0), (0,5), (3,2), (0,2), (2,0), (2,5), (3,4)]
+        expected_step_number=6,  # [(0,5), (3,2), (0,2), (2,0), (2,5), (3,4)]
     ),
     WaterPouringPuzzeTestCase(
-        name="2 steps",
+        name="1 step",
         a=4,
         b=5,
         n=4,
-        expected_step_number=2,  # [(0,0), (4,0)]
+        expected_step_number=1,  # [(4,0)]
     ),
     WaterPouringPuzzeTestCase(
-        name="2 step",
+        name="1 step",
         a=4,
         b=5,
         n=5,
-        expected_step_number=2,  # [(0,0), (0,5)]
+        expected_step_number=1,  # [(0,5)]
     ),
 ]
 
