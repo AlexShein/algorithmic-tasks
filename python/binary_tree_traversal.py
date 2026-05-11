@@ -1,17 +1,13 @@
 import pytest
 from dataclasses import dataclass
-from typing import TypeVar
+from typing import Optional
 
 
 @dataclass
 class Node:
     data: float | str  # A number or a string
-    left: TypeVar["Node"] | None = (
-        None  # A Node, which is None if there is no left child.
-    )
-    right: TypeVar["Node"] | None = (
-        None  # A Node, which is None if there is no right child.
-    )
+    left: Optional["Node"] = None  # A Node, which is None if there is no left child.
+    right: Optional["Node"] = None  # A Node, which is None if there is no right child.
 
 
 # Pre-order traversal: iterative approach using a stack
