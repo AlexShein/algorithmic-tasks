@@ -77,11 +77,7 @@ SLIDE_TEST_CASES = [
 
 
 @pytest.mark.parametrize("test_case", SLIDE_TEST_CASES)
-def test_shallowest_path(test_case: LongestSlideDownTestCase):
+def test_longest_slide_down(test_case: LongestSlideDownTestCase):
     length = longest_slide_down(test_case.pyramid)
 
     assert length == test_case.expected_length, f"{test_case.name}: length differs"
-
-
-if __name__ == "__main__":
-    pass
