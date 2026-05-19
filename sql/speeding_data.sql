@@ -1,4 +1,4 @@
-SELECT people.id,
+SELECT people.id as person_id,
          people.birthdate,
          COALESCE(SUM(records.speed_delta),
          0) AS total_speed_delta
